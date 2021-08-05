@@ -37,7 +37,7 @@ Usage: save [-f filter] [-d dir]   Save all Docker images to a directory
     echo
 }
 
-get-image-field() {
+getimagefield() {
   local imageId=$1
   local field=$2
   : ${imageId:? required}
@@ -46,15 +46,15 @@ get-image-field() {
   docker images --no-trunc | sed -n "/${imageId}/s/  */ /gp" | cut -d " " -f $field
 }
 
-get-image-name() {
-  get-image-field $1 1
+getimagename() {
+  getimagefield $1 1
 }
 
-get-image-tag() {
-  get-image-field $1 2
+getimagetag() {
+  getimagefield $1 2
 }
 
-save-all-images() {
+saveallimages() {
   local ids=$(docker images --no-trunc -q)
   local name safename tag
 
@@ -86,7 +86,7 @@ save-all-images() {
   done
 }
 
-load-all-images() {
+loadallimages() {
   local name safename noextension tag
 
   if [[ $compress -eq 0 ]]; then
@@ -105,10 +105,10 @@ load-all-images() {
 
 case $1 in
     save)
-      save-all-images
+      saveallimages
     ;;
     load)
-      load-all-images
+      loadallimages
     ;;
     *)
         help
