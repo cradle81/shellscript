@@ -79,4 +79,4 @@ done < $WORK_DIR/conlist.txt
 
 #echo $POD
 #kubectl get pod $POD -n $NS -o json | jq ".spec.containers[].resources"
-done < $WORK_DIR/list.txt | tee  $WORK_DIR/$LOGFILE
+done < $WORK_DIR/list.txt | tee  -a $WORK_DIR/$LOGFILE
