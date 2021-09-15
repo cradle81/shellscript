@@ -11,15 +11,17 @@ WORK_DIR=/root/jungwon
 kubectl get pod -A -o wide |grep Running| awk '{printf "%-30s %-40s %-20s\n", $1,$2,$8}' | sort | grep -v NAMESPACE>  $WORK_DIR/list.txt 
 
 ## 각 노드의 crictl 실행
-for node in `kubectl get nodes -o wide  | grep -v INTERNAL-IP | awk '{print $1}'`
+## keygen으로 ssl copy가 되어야 함
+for node in `kubectl get nodes | grep -v NAME | awk '{print $1}'`
 do
-ssh root@$node "crictl stats " > $WORK_DIR/$node.stats
-ssh root@$node "crictl ps " > $WORK_DIR/$node.ps
-ssh root@$node "crictl images " > $WORK_DIR/$node.images
+ip=`kubectl get node -o wide |grep -v INTERNAL-IP | grep $node | awk '{print $6}'`
+ssh root@$ip "crictl stats " > $WORK_DIR/$node.stats
+ssh root@$ip "crictl ps " > $WORK_DIR/$node.ps
+ssh root@$ip "crictl images " > $WORK_DIR/$node.images
 done
 
 #echo HEAD
-printf "%-20s %-15s %-40s %-20s %-7s %-5s %-10s %-10s %-5s %-10s %-10s \n" "DATE" "NAMESPACE" "POD" "CONNAME" "CPU(m)" "CPU(%)" "MEM" "DISK" "REQCPU" "REQMEM" "IMAGESIZE" > $WORK_DIR/$LOGFILE
+printf "%-20s %-15s %-40s %-20s %-7s %-5s %-10s %-10s %-5s %-10s %-10s \n" "DATE" "NAMESPACE" "POD" "CONNAME" "CPU(m)" "CPU(%)" "MEM" "DISK" "REQCPU" "REQMEM" "IMAGESIZE" | tee $WORK_DIR/$LOGFILE
 
 while read line
 do 
@@ -77,4 +79,4 @@ done < $WORK_DIR/conlist.txt
 
 #echo $POD
 #kubectl get pod $POD -n $NS -o json | jq ".spec.containers[].resources"
-done < $WORK_DIR/list.txt >> $WORK_DIR/$LOGFILE
+done < $WORK_DIR/list.txt | tee  $WORK_DIR/$LOGFILE
