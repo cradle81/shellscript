@@ -2,8 +2,8 @@
 ## 특정 Namespace만 체크##
 ## 
 DATE=`date +%Y/%m/%d:%H:%M`
-LOGFILE=log-$(date +%Y%m%d%H%M).txt
 WORK_DIR=/root/jungwon
+LOGFILE=$WORK_DIR/logs/log-$(date +%Y%m%d%H%M).txt
 
 ## POD LIST ##
 ## 러닝 상태만 체크
@@ -21,7 +21,7 @@ ssh root@$ip "crictl images " > $WORK_DIR/$node.images
 done
 
 #echo HEAD
-printf "%-20s %-15s %-40s %-20s %-7s %-5s %-10s %-10s %-5s %-10s %-10s \n" "DATE" "NAMESPACE" "POD" "CONNAME" "CPU(m)" "CPU(%)" "MEM" "DISK" "REQCPU" "REQMEM" "IMAGESIZE" | tee $WORK_DIR/$LOGFILE
+printf "%-20s %-15s %-40s %-20s %-7s %-5s %-10s %-10s %-5s %-10s %-10s \n" "DATE" "NAMESPACE" "POD" "CONNAME" "CPU(m)" "CPU(%)" "MEM" "DISK" "REQCPU" "REQMEM" "IMAGESIZE" | tee $LOGFILE
 
 while read line
 do 
@@ -79,4 +79,4 @@ done < $WORK_DIR/conlist.txt
 
 #echo $POD
 #kubectl get pod $POD -n $NS -o json | jq ".spec.containers[].resources"
-done < $WORK_DIR/list.txt | tee  -a $WORK_DIR/$LOGFILE
+done < $WORK_DIR/list.txt | tee -a $LOGFILE
