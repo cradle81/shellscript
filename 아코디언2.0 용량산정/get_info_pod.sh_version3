@@ -41,7 +41,8 @@ do
 CON_ID=`echo $con | awk -F'//' '{print $2}' | cut -c1-13`
 CON_NAME=`echo $con | awk -F',' '{print $1}'`
 APP=`kubectl get pod $POD -n $NS -o json | \
-jq -r '{name:.metadata.name, ownerKind: .metadata.ownerReferences[0].kind, owerName:.metadata.ownerReferences[0].name}|[.ownerKind, .owerName, .name]| @csv' | \
+kubectl get pod $POD -n $NS -o json | \
+jq -r '{name:.metadata.name, ownerKind: .metadata.ownerReferences[0].kind, owerName:.metadata.ownerReferences[0].name}|[.ownerKind, .owerName, .name]| @csv' | tr -d '"' | \
 while IFS=',' read -r ownerKind owerName name
 do
 if [ "$ownerKind" = "ReplicaSet" ];then
@@ -51,7 +52,7 @@ echo "None"
 else
 echo $owerName | cut -c1-20
 fi
-done | tr -d '"'`
+done`
 
 
 REQCPU=`kubectl get pod $POD -n $NS -o json | jq -r --arg con $CON_NAME '.spec.containers[]|select(.name==$con)|.resources.requests|.cpu//0'`
