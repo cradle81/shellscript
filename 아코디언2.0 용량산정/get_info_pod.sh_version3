@@ -61,7 +61,7 @@ awk '{if($3 ~ /GB/){printf "%sMB\n", substr($3,1,length($3)-2)*1024}}'
 #echo $CON_ID
 #CRICTL_STATS=`ssh root@$NODE_NAME "crictl stats --id  $CON_ID"| grep -v CONTAINER`
 CPU2=`grep $CON_ID $WORK_DIR/$NODE_NAME.stats | awk '{print $2}'`
-MEM=`grep $CON_ID $WORK_DIR/$NODE_NAME.stats | awk '{if($3 ~ /GB/){printf "%s\n", substr($3,1,length($3)-2)*1024}else {print substr($3,1,length($3)-2)}}'`
+MEM=`grep $CON_ID $WORK_DIR/$NODE_NAME.stats | awk '{if($3 ~ /GB/){printf "%s\n", substr($3,1,length($3)-2)*1024}else if($3 ~ /kB/){print substr($3,1,length($3)-2)/1024}else {print substr($3,1,length($3)-2)}}'
 DISK=`grep $CON_ID $WORK_DIR/$NODE_NAME.stats | awk '{print $4}'`
 IMAGE_ID=`grep $CON_ID $WORK_DIR/$NODE_NAME.ps | awk '{print $2}'`
 ##동일한 이미지가 있을 수 있음
