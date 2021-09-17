@@ -79,7 +79,8 @@ do
  pv=`kubectl get pvc $pvc -n $NS -o json | jq -r '[.spec.volumeName]|@tsv'`
  path=`kubectl get pv $pv -n $NS -o json | jq -r \
  --arg ip $SRCIP 'select(.spec.nfs.server==$ip)|[.spec.nfs.path]|@tsv'`
- nas_size=`sshpass -p $PW ssh $CONN du -sk $path 2> /dev/null | awk '{print $1}'`
+ sizetemp=`sshpass -p $PW ssh $CONN du -sk $path 2> /dev/null | awk '{print $1}'`
+ nas_size=`expr $nas_size + $sizetemp`
 done
 
 
