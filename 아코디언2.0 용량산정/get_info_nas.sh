@@ -8,7 +8,7 @@ PW=accordionadmin
 
 #### Pvc리스트 확인
 echo "=== CHECK Pod LIST ===" 
-printf "%-10s %-15s %-20s %-20s %-20s %-25s %10s\n" "NAMESPACE" "OWNERKIND" "OWERAAME" "POD" "CLAIMNAME" "PV" "SIZE(kb)" | tee -a $LOG_FILE
+printf "%-20s %-20s %-15s %-20s %-20s %-20s %-25s %10s\n" "DATE" "NAMESPACE" "OWNERKIND" "OWERAAME" "POD" "CLAIMNAME" "PV" "SIZE(kb)" | tee -a $LOG_FILE
 kubectl get pv -o json | jq -r --arg ip $SRCIP \
 '.items[]|select(.status.phase=="Bound")|{name: .metadata.name, nfs: .spec.nfs.server, namespace:.spec.claimRef.namespace, claimName: .spec.claimRef.name, path: .spec.nfs.path}|select(.nfs==$ip)|[.claimName, .namespace, .name, .path] | @tsv'|
 while IFS=$'\t' read -r claimName namespace pv path
@@ -29,11 +29,12 @@ kubectl -n $namespace get pod -o json | jq -r --arg pvc $claimName \
     --arg name $name \
     --arg pv $pv \
     --arg size $size \
-    '[.metadata.namespace, .metadata.ownerReferences[0].kind, .metadata.ownerReferences[0].name[0:19], $name, $claimName, $pv, $size]|@tsv' | \
-    xargs printf "%-10s %-15s %-20s %-20s %-20s %-25s %10d\n" 
+    --arg date $DATE \
+    '[$date, .metadata.namespace, .metadata.ownerReferences[0].kind, .metadata.ownerReferences[0].name[0:19], $name, $claimName, $pv, $size]|@tsv' | \
+    xargs printf "%-20s %-20s %-15s %-20s %-20s %-20s %-25s %10d\n" 
     else
     owerName=`echo $owerName | cut -c1-20`
-    printf "%-10s %-15s %-20s %-20s %-20s %-25s %10d\n" $namespace $ownerKind $owerName $name ${claimName} $pv $size 
+    printf "%-20s %-20s %-15s %-20s %-20s %-20s %-25s %10d\n" $DATE $namespace $ownerKind $owerName $name ${claimName} $pv $size 
     fi 
   done
 done  | tee -a $LOG_FILE

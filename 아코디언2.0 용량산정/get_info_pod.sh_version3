@@ -21,7 +21,7 @@ ssh root@$ip "crictl images " > $WORK_DIR/$node.images
 done
 
 #echo HEAD
-printf "%-20s %-15s %-40s %-20s %-7s %-5s %-10s %-10s %-5s %-10s %-10s \n" "DATE" "NAMESPACE" "POD" "CONNAME" "CPU(m)" "CPU(%)" "MEM" "DISK" "REQCPU" "REQMEM" "IMAGESIZE" | tee $LOGFILE
+printf "%-20s %-15s %-40s %-20s %-10s %-10s %-10s %-10s %-10s %-10s %-10s \n" "DATE" "NAMESPACE" "POD" "CONNAME" "CPU(m)" "CPU(%)" "MEM(MB)" "DISK" "REQCPU" "REQMEM" "IMAGESIZE" | tee $LOGFILE
 
 while read line
 do 
@@ -43,7 +43,7 @@ CON_NAME=`echo $con | awk -F',' '{print $1}'`
 REQCPU=`kubectl get pod $POD -n $NS -o json | jq -r --arg con $CON_NAME '.spec.containers[]|select(.name==$con)|.resources.requests|.cpu//0'`
 REQMEM=`kubectl get pod $POD -n $NS -o json | jq -r --arg con $CON_NAME '.spec.containers[]|select(.name==$con)|.resources.requests|.memory//0'`
 
-CPU=`kubectl top pod $POD -n $NS --containers | awk -v con=$CON_NAME '{if(con==$2)print $3}'`
+CPU=`kubectl top pod $POD -n $NS --containers | awk -v con=$CON_NAME '{if(con==$2)print substr($3,1,length($3)-1)}'`
 #MEM=`kubectl top pod $POD -n $NS --containers | awk -v con=$con '{if(con==$2)print $4}'`
 
 
@@ -56,12 +56,12 @@ CPU=`kubectl top pod $POD -n $NS --containers | awk -v con=$CON_NAME '{if(con==$
 #if [ "$IMAGESIZE" == "" ];then
 #IMAGESIZE=0
 #fi
-#IMAGESIZE=`echo "scale=2; ${IMAGESIZE}/1024/1024" | bc -l`
 
+awk '{if($3 ~ /GB/){printf "%sMB\n", substr($3,1,length($3)-2)*1024}}' 
 #echo $CON_ID
 #CRICTL_STATS=`ssh root@$NODE_NAME "crictl stats --id  $CON_ID"| grep -v CONTAINER`
 CPU2=`grep $CON_ID $WORK_DIR/$NODE_NAME.stats | awk '{print $2}'`
-MEM=`grep $CON_ID $WORK_DIR/$NODE_NAME.stats | awk '{print $3}'`
+MEM=`grep $CON_ID $WORK_DIR/$NODE_NAME.stats | awk '{if($3 ~ /GB/){printf "%s\n", substr($3,1,length($3)-2)*1024}else {print substr($3,1,length($3)-2)}}'`
 DISK=`grep $CON_ID $WORK_DIR/$NODE_NAME.stats | awk '{print $4}'`
 IMAGE_ID=`grep $CON_ID $WORK_DIR/$NODE_NAME.ps | awk '{print $2}'`
 ##동일한 이미지가 있을 수 있음
@@ -72,7 +72,7 @@ IMAGESIZE=`grep $IMAGE_ID $WORK_DIR/$NODE_NAME.images | awk '{print $4}'|uniq`
 
 #echo  $IMAGE $IMAGESIZE
 
-printf "%-20s %-15s %-40s %-20s %-7s %-5s %-10s %-10s %-5s %-10s %-10s \n" $DATE ${NS:0:14} ${POD:0:39} ${CON_NAME:0:19} $CPU $CPU2 $MEM $DISK $REQCPU $REQMEM "${IMAGESIZE}"
+printf "%-20s %-15s %-40s %-20s %-10s %-10s %-10s %-10s %-10s %-10s %-10s \n" $DATE ${NS:0:14} ${POD:0:39} ${CON_NAME:0:19} $CPU $CPU2 $MEM $DISK $REQCPU $REQMEM "${IMAGESIZE}"
 
 
 done < $WORK_DIR/conlist.txt
